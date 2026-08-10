@@ -1,0 +1,36 @@
+# Render Blueprint Specification for OmniRoute
+# Reference: https://render.com/docs/blueprints
+
+services:
+  - type: web
+    name: omniroute
+    env: docker
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    
+    # Use 'runner-base' for a lean deployment (~500MB, no browser engines).
+    # Switch to 'runner-web' if you need web-cookie providers (Gemini Web, Claude Turnstile).
+    dockerTarget: runner-base
+
+    # OmniRoute requires a plan with at least 1GB of RAM for standard operation
+    # (e.g. Starter or higher) due to Next.js production memory overhead.
+    plan: starter
+
+    # Expose the service port configured in the Dockerfile
+    port: 20128
+
+    envVars:
+      - key: PORT
+        value: 20128
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /app/data
+      - key: OMNIROUTE_MEMORY_MB
+        value: 1024 # Match memory to Render starter plan (1 GB)
+
+    # Attach a persistent disk to preserve SQLite database state across restarts
+    disk:
+      name: omniroute-data
+      mountPath: /app/data
+      sizeGB: 10
